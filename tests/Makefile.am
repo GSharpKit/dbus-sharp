@@ -1,6 +1,6 @@
 ASSEMBLY = dbus-sharp-tests
 TARGET = $(ASSEMBLY).dll
-XBUILD_Q = $(XBUILD) /p:TargetFrameworkVersion="v4.5" /nologo /verbosity:quiet
+MSBUILD_Q = $(MSBUILD) /p:TargetFrameworkVersion="v4.5" /nologo /verbosity:quiet
 
 NUNIT_CONSOLE = $$(echo $$(which nunit-console2 || which nunit-console))
 RUNNER = $(NUNIT_CONSOLE) -nologo
@@ -22,7 +22,7 @@ if ENABLE_TESTS
 all: $(TARGET)
 
 $(TARGET):
-	$(XBUILD_Q) dbus-sharp-tests.csproj
+	$(MSBUILD_Q) dbus-sharp-tests.csproj
 
 test: $(TARGET)
 	if test -z "$$DBUS_SESSION_BUS_ADDRESS" ; then \

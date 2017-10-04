@@ -1,6 +1,6 @@
 ASSEMBLY = dbus-sharp
 TARGET = $(ASSEMBLY).dll
-XBUILD_Q = $(XBUILD) /p:TargetFrameworkVersion="v4.5" /nologo /verbosity:quiet
+MSBUILD_Q = $(MSBUILD) /nologo /property:Configuration='Release'
 
 # Use the gencssources script to generate this list
 CSFILES = Address.cs \
@@ -49,9 +49,8 @@ CSFILES = Address.cs \
 all: $(TARGET)
 
 $(TARGET): $(CSFILES) AssemblyInfo.cs
-	-cp AssemblyInfo.cs $(srcdir)/
-	$(XBUILD_Q) $(srcdir)/dbus-sharp.csproj
-	-cp  $(srcdir)/dbus-sharp.dll* .
+	$(MSBUILD_Q) $(srcdir)/dbus-sharp.csproj
+	$(SN) -q -R $(srcdir)/dbus-sharp.dll $(srcdir)/../dbus-sharp.snk
 
 install-data-local: $(TARGET)
 	@if test -n '$(TARGET)'; then                       \

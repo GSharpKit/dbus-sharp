@@ -35,11 +35,17 @@ if test "x$GACUTIL" = "xno"; then
 fi
 AC_SUBST(GACUTIL)
 
-AC_PATH_PROG(XBUILD, xbuild, no)
-if test "x$GACUTIL" = "xno"; then
-	AC_MSG_ERROR([You need to install xbuild])
+AC_PATH_PROG(MSBUILD, msbuild, no)
+if test "x$MSBUILD," = "xno"; then
+	AC_MSG_ERROR([You need to install msbuild])
 fi
-AC_SUBST(XBUILD)
+AC_SUBST(MSBUILD)
+
+AC_PATH_PROG(SN, sn, no)
+if test "x$SN" = "xno"; then
+        AC_MSG_ERROR([You need to install sn])
+fi
+AC_SUBST(SN)
 
 required_assemblies="Mono.Posix"
 
