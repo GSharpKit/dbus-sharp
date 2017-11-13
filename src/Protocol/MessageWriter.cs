@@ -11,10 +11,12 @@ using System.Runtime.InteropServices;
 
 namespace DBus.Protocol
 {
-	public sealed class MessageWriter
+	// Disposing a MessageWriter will close all UnixFDs written to it
+	public sealed class MessageWriter : IDisposable
 	{
 		EndianFlag endianness;
 		MemoryStream stream;
+		internal readonly UnixFDArray fdArray;
 		Connection connection;
 
 		static readonly MethodInfo arrayWriter = typeof (MessageWriter).GetMethod ("WriteArray");
@@ -35,6 +37,13 @@ namespace DBus.Protocol
 		{
 			this.endianness = endianness;
 			stream = new MemoryStream ();
+			fdArray = new UnixFDArray ();
+		}
+
+		public void Dispose ()
+		{
+			if (fdArray != null)
+				fdArray.Dispose ();
 		}
 
 		public Connection Connection {
@@ -172,6 +181,13 @@ namespace DBus.Protocol
 			Write ((uint)utf8_data.Length);
 			stream.Write (utf8_data, 0, utf8_data.Length);
 			WriteNull ();
+		}
+
+		public void Write (UnixFD val)
+		{
+			int index = fdArray.FDs.Count;
+			fdArray.FDs.Add (val);
+			Write ((uint) index);
 		}
 
 		public void Write (ObjectPath val)
@@ -340,8 +356,13 @@ namespace DBus.Protocol
 			}
 
 			Type type = val.GetType ();
-
-			WriteVariant (type, val);
+			
+			// TODO: workaround issue with array being written as variant
+			// See PR for context: https://github.com/mono/dbus-sharp/pull/58
+			if (type.IsArray)
+				Write (type, val);
+			else
+				WriteVariant (type, val);
 		}
 
 		public void WriteVariant (Type type, object val)
@@ -497,6 +518,7 @@ namespace DBus.Protocol
 						Write ((ObjectPath)entry.Value);
 						break;
 					case FieldCode.ReplySerial:
+					case FieldCode.UnixFDs:
 						Write (Signature.UInt32Sig);
 						Write ((uint)entry.Value);
 						break;
